@@ -1,0 +1,12 @@
+import psutil
+import mysql.connector
+import time
+import os
+while True:
+	cpu=psutil.cpu_percent()
+	ram=psutil.virtual_memory()[2]
+	if(ram>=97):
+		os.
+	print(cpu)
+	print(ram)
+	time.sleep(5)
