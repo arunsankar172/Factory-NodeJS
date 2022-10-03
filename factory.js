@@ -139,58 +139,27 @@ app.get('/update1_data/', (req, res) => {
 	LT[i] = "ok"
 	}
 	}
-
-        if(L2<220){
-	if(L2Flag == 0 && LFlag == 0){
-		L2Flag = 1;
-		 LFlag = 1 
-		if(L2<=0){
-                        L2T= "Line 2 Fault"
-                }
-                else{
-                        L2T= "Line 2 Low Volt, V:"+L2
-                }
-        }
-	}
-        else{
-        L2T="ok"
-	L2Flag = 0;
-        }
-        
-	if(L3<220){
-	if(L3Flag == 0 && LFlag == 0){
-		L3Flag = 1;
-		 LFlag = 1
-                if(L3<=0){
-                        L3T= "Line 3 Fault"
-                }
-                else{
-                        L3T= "Line 3 Low Volt, V:"+L3
-                }
-        }
-	}
-        else{
-        L3T="ok"
-	L3Flag = 0;
         }
 
                 var text=""
-                if(L1T!="ok"){
-                text+=L1T
+                if(LT[0]!="ok"){
+                text+=LT[0]
 		//L1Flag == 0
                 }
-                if(L2T!="ok"){  
-                text+=" | "+L2T
+                if(LT[1]!="ok"){  
+                text+=" | "+LT[1]
 		//L2Flag == 0
                 }
-                if(L3T!="ok"){  
-                text+=" | "+L3T
+                if(LT[2]!="ok"){  
+                text+=" | "+LT[2]
 		//L3Flag == 0
                 }
-	console.log("L1: "+L1Flag+" L2: "+L2Flag+" L3: "+L3Flag)
-	if(LFlag == 1){
+	console.log("L1: "+LFlag[0]+" L2: "+LFlag[1]+" L3: "+LFlag[2])
+	if(LAlarmFlag[0] == 1 || LAlarmFlag[1] == 1 || LAlarmFlag[2] == 1){
 		console.log(text)
-		LFlag = 0
+		LAlarmFlag[0] = 0
+		LAlarmFlag[1] = 0
+		LAlarmFlag[2] = 0
 	}
 
 	//console.log(L1T)
