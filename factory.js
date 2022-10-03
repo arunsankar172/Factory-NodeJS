@@ -117,21 +117,27 @@ app.get('/update1_data/', (req, res) => {
 	V[0] = parseFloat(data.vp1)
 	V[1] = parseFloat(data.vp2)
 	V[2] = parseFloat(data.vp3)
-	var LT = [];
+	var volt = V[0]+V[1]+V[2]
+	var LT ={
+		type:"",
+		text:[]
+	}
 //	var LFlag = [0,0,0]
 //	var LAlarmFlag = [0,0,0]
 	for(let i=0;i<V.length;i++){
 	//console.log("Loop Running")
-	if(V[i]<250){
+	if(V[i]<190 && volt>0){
 //		console.log("LFlag["+i+"]: "+LFlag[i]+" | "+"LAlarmFlag["+i+"]: "+LAlarmFlag[i])
 		if(LFlag[i] == 0 && LAlarmFlag[i] == 0){
 		LFlag[i] = 1;
 		LAlarmFlag[i] = 1
 		if(V[i]<=0){
-	 		LT[i]= "Line "+(i+1)+" Fault"
+			LT.type="Line Fault"
+	 		LT.text[i]= "Line "+(i+1)+" Fault"
 		}
 		else{
-			LT[i]= "Line "+(i+1)+" Low Volt, V:"+V[i]
+			LT.type="Low Voltage"
+			LT.text[i]= "Line "+(i+1)+" Low Volt, V:"+V[i]
 		}
 	//	console.log(LT[i])
 //		console.log("LFlag["+i+"]: "+LFlag[i]+" | "+"LAlarmFlag["+i+"]: "+LAlarmFlag[i])
@@ -140,26 +146,28 @@ app.get('/update1_data/', (req, res) => {
 	}
 	else{
 	LFlag[i] = 0;
-	LT[i] = "ok"
+	LT.text[i] = "ok"
 	}
 	}
 
                 var text=""
-                if(LT[0]!="ok"){
-                text+=LT[0]
+                if(LT.text[0]!="ok"){
+                text+=LT.text[0]
 		//L1Flag == 0
                 }
-                if(LT[1]!="ok"){  
-                text+=" | "+LT[1]
+                if(LT.text[1]!="ok"){  
+                text+=" | "+LT.text[1]
 		//L2Flag == 0
                 }
-                if(LT[2]!="ok"){  
-                text+=" | "+LT[2]
+                if(LT.text[2]!="ok"){  
+                text+=" | "+LT.text[2]
 		//L3Flag == 0
                 }
+	//console.log(LT)
 	console.log("L1: "+LFlag[0]+" L2: "+LFlag[1]+" L3: "+LFlag[2])
 	if(LAlarmFlag[0] == 1 || LAlarmFlag[1] == 1 || LAlarmFlag[2] == 1){
 		console.log(text)
+		lineFault(text,LT.type)
 		LAlarmFlag[0] = 0
 		LAlarmFlag[1] = 0
 		LAlarmFlag[2] = 0
@@ -356,12 +364,12 @@ function offAlarm() {
         });
 }
 
-function lineFault(text) {
+function lineFault(text,type) {
     console.log("Line Fault");
     onFlag = 0;
     con.connect(function (err) {
         if (err) throw err
-        con.query("INSERT INTO alarm_log (kw) VALUES ('Line Fault') ;", function (err, result) {
+        con.query("INSERT INTO alarm_log (kw) VALUES ("+type+") ;", function (err, result) {
             if (err) throw err
             // res.status(200).send("success");
         })
@@ -373,8 +381,8 @@ function lineFault(text) {
     var data = {
         "to": "/topics/factoryupdate",
         "data": {
-            "title": "Power OFF",
-            "content": "Power OFF",
+            "title": type,
+            "content": text,
             "type": "poweron"
         }
     }
