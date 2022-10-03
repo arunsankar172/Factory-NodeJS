@@ -6,6 +6,11 @@ var request = require('request');
 const path = require('path');
 var count = 0;
 var onFlag = 0;
+var offFlag = 0;
+var LFlag = 0;
+var L1Flag = 0;
+var L2Flag = 0;
+var L3Flag = 0;
 var waitTill;
 var alarmFlag;
 var kw;
@@ -60,15 +65,15 @@ app.get('/get_data1', (req, res) => {
         data: "",
         usage: ""
     }
-    var dataJSON='{"id":0,"kw":"Power OFF","vp1":"0.00","vp2":"0.00","vp3":"0.00","il1":"","il2":"","il3":"","pf":"0.00","alarm":"1","relay":"1}'
-    var newTime=new Date()
-    var timeDiff=(newTime.getTime()-oldTime.getTime())/1000
-    if(parseFloat(timeDiff)>15){    
-     console.log("Power OFF")
+  //  var dataJSON='{"id":0,"kw":"Power OFF","vp1":"0.00","vp2":"0.00","vp3":"0.00","il1":"","il2":"","il3":"","pf":"0.00","alarm":"1","relay":"1}'
+    //var newTime=new Date()
+    //var timeDiff=(newTime.getTime()-oldTime.getTime())/1000
+   // if(parseFloat(timeDiff)>15){    
+    // console.log("Power OFF")
     // console.log(JSON.stringify(dataJSON))
-     response.data = JSON.stringify(dataJSON)
-    }
-    else{
+    // response.data = JSON.stringify(dataJSON)
+    //}
+   // else{
     con.connect(function (err) {
         if (err) throw err;
         con.query("SELECT * FROM energy ORDER BY id DESC LIMIT 1;", function (err, result, fields) {
@@ -81,15 +86,15 @@ app.get('/get_data1', (req, res) => {
             }
         });
     });
-    }
+    //}
 
     con.connect(function (err) {
         if (err) throw err;
-        con.query('SELECT (SELECT SUM(kw*0.000972222) AS "usage" from energy WHERE DAY(time) = DAY(CURRENT_DATE())) as "today" ,(SELECT SUM(kw*0.000972222) AS "usage" FROM energy WHERE YEARWEEK(time) = YEARWEEK(CURRENT_DATE()) ) as "thisweek", (SELECT SUM(kw*0.000972222) AS "usage" FROM energy WHERE MONTH(time) = MONTH(CURRENT_DATE())) as "thismonth";', function (err, result, fields) {
+        con.query('SELECT (SELECT SUM(kw*0.000972222) AS "usage" from energy WHERE DAY(time) = DAY(CURRENT_DATE())) as "today" ,(select "0") "thisweek", (select "0") as "thismonth";', function (err, result, fields) {
             if (err) throw err;
             if (result.length > 0) {
                 response.usage = JSON.stringify(result[0])
-                // console.log(response)
+                //console.log(response)
                 res.status(200).send(JSON.stringify(response));
             }
         });
@@ -110,26 +115,113 @@ app.get('/update1_data/', (req, res) => {
         else {
             count = 0;
         }
-        var volt = parseFloat(data.vp1) + parseFloat(data.vp2) + parseFloat(data.vp3)
+	var V = []
+	V[0] = parseFloat(data.vp1)
+	V[1] = parseFloat(data.vp2)
+	V[2] = parseFloat(data.vp3)
+	var LT = [];
+	var LFlag = [0,0,0]
+	for(let i=0;i<V.length;i++){
+	if(L[i]<220){
+		if(LFlag[i] == 0 && LAlarmFlag[i] == 0){
+		LFlag = 1;
+		LAlarmFlag = 1
+		if(L[i]<=0){
+	 		LT[i]= "Line "+i+1+" Fault"
+		}
+		else{
+			LT[i]= "Line "+i+1+" Low Volt, V:"+L[i]
+		}
+	}
+	}
+	else{
+	LFlag[i] = 0;
+	LT[i] = "ok"
+	}
+	}
+
+        if(L2<220){
+	if(L2Flag == 0 && LFlag == 0){
+		L2Flag = 1;
+		 LFlag = 1 
+		if(L2<=0){
+                        L2T= "Line 2 Fault"
+                }
+                else{
+                        L2T= "Line 2 Low Volt, V:"+L2
+                }
+        }
+	}
+        else{
+        L2T="ok"
+	L2Flag = 0;
+        }
+        
+	if(L3<220){
+	if(L3Flag == 0 && LFlag == 0){
+		L3Flag = 1;
+		 LFlag = 1
+                if(L3<=0){
+                        L3T= "Line 3 Fault"
+                }
+                else{
+                        L3T= "Line 3 Low Volt, V:"+L3
+                }
+        }
+	}
+        else{
+        L3T="ok"
+	L3Flag = 0;
+        }
+
+                var text=""
+                if(L1T!="ok"){
+                text+=L1T
+		//L1Flag == 0
+                }
+                if(L2T!="ok"){  
+                text+=" | "+L2T
+		//L2Flag == 0
+                }
+                if(L3T!="ok"){  
+                text+=" | "+L3T
+		//L3Flag == 0
+                }
+	console.log("L1: "+L1Flag+" L2: "+L2Flag+" L3: "+L3Flag)
+	if(LFlag == 1){
+		console.log(text)
+		LFlag = 0
+	}
+
+	//console.log(L1T)
+	//console.log(L2T)
+	//console.log(L3T)
+	
+        var volt = L1+L2+L3
         console.log(volt)
         
 	if (volt <= 0) {
             console.log("Power OFF")
+ 	    if(offFlag == 0){
+	  	offAlarm()
+	     }
+	    offFlag = 1;
             onFlag = 1;
         }
         else {
             if (onFlag == 1 && (volt > 0)) {
                 console.log("Power ON")
                 onAlarm();
+		offFlag = 0;
             }
         }
-	var newTime=new Date()
-	var timeDiff=(newTime.getTime()-oldTime.getTime())/1000
-	if(parseFloat(timeDiff)>60){	
-	console.log("Power ON")
-	onAlarm()
-	}
-	oldTime= new Date()
+//	var newTime=new Date()
+//	var timeDiff=(newTime.getTime()-oldTime.getTime())/1000
+//	if(parseFloat(timeDiff)>60){	
+//	console.log("Power ON")
+//	onAlarm()
+//	}
+//	oldTime= new Date()
         con.connect(function (err) {
             if (err) throw err
             // con.query("UPDATE energy SET kw=?, vp1=?, vp2=? ,vp3=? ,il1=? ,il2=? ,il3=?  WHERE id LIKE 1;", [data.kw, data.vp1, data.vp2, data.vp3, data.il1, data.il2, data.il3, data.alarm, data.relay], function (err, result) {
@@ -139,13 +231,13 @@ app.get('/update1_data/', (req, res) => {
             })
         })
 
-        con.connect(function (err) {
-            if (err) throw err
-            con.query("INSERT INTO volt (volt) VALUES (?);", [timeDiff], function(err, result) {
-                if (err) throw err
+//        con.connect(function (err) {
+  //          if (err) throw err
+    //        con.query("INSERT INTO volt (volt) VALUES (?);", [timeDiff], function(err, result) {
+      //          if (err) throw err
                 //res.status(200).send("success");
-            })
-        })
+       //     })
+       // })
     }
 
 })
@@ -258,6 +350,39 @@ function onAlarm() {
         });
 }
 
+function offAlarm() {
+    console.log("OFF Alarm");
+    onFlag = 0;
+    con.connect(function (err) {
+        if (err) throw err
+        con.query("INSERT INTO alarm_log (kw) VALUES ('Power OFF') ;", function (err, result) {
+            if (err) throw err
+            // res.status(200).send("success");
+        })
+    })
+    var headersOpt = {
+        "content-type": "application/json",
+        "Authorization": "key=AAAA2Y0T-qE:APA91bGuJwoJ5Kgov1f6h8ru2963O9TkJNSNWjhrqGpijI3RKsBPdGhHQYeyPnhE8lK_4MVcxXODt036U4eK-Tc-n6V7o_2HXJDpNnW3zDXvS-vJwTBmaLrGUxCDQsGsDLJh_ukadFuX"
+    };
+    var data = {
+        "to": "/topics/factoryupdate",
+        "data": {
+            "title": "Power OFF",
+            "content": "Power OFF",
+            "type": "poweron"
+        }
+    }
+    request(
+ 	{
+            method: 'POST',
+            url: 'https://fcm.googleapis.com/fcm/send',
+            headers: headersOpt,
+            json: data,
+        }, function (error, response, body) {
+            //Print the Response
+            console.log(body);
+        });
+}
 // SELECT SUM(power*0.00194444)/1000 AS DailyKW, Date(time) FROM power GROUP BY DATE(time) ORDER BY `Date(time)` DESC;
 // SELECT SUM(power*0.00194444)/1000 AS DailyKW, Date(time) as Time FROM power GROUP BY DATE(time) ORDER BY Date(time) DESC LIMIT 10;
 
@@ -286,3 +411,6 @@ function onAlarm() {
 // ) as "last7days", (SELECT SUM(kw*0.000972222) AS "usage" FROM energy WHERE MONTH(time) = MONTH(CURRENT_DATE())) as "last30days";
 
 
+//SELECT SUM(kw*0.000972222) AS "usage" FROM energy WHERE MONTH(time) = MONTH(CURRENT_DATE())) as "thismonth"
+
+//(SELECT SUM(kw*0.000972222) AS "usage" FROM energy WHERE YEARWEEK(time) = YEARWEEK(CURRENT_DATE()) ) as "thisweek"
