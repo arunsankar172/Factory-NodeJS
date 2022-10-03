@@ -7,10 +7,8 @@ const path = require('path');
 var count = 0;
 var onFlag = 0;
 var offFlag = 0;
-var LFlag = 0;
-var L1Flag = 0;
-var L2Flag = 0;
-var L3Flag = 0;
+var LFlag = [0,0,0]
+var LAlarmFlag = [0,0,0]
 var waitTill;
 var alarmFlag;
 var kw;
@@ -120,18 +118,24 @@ app.get('/update1_data/', (req, res) => {
 	V[1] = parseFloat(data.vp2)
 	V[2] = parseFloat(data.vp3)
 	var LT = [];
-	var LFlag = [0,0,0]
+//	var LFlag = [0,0,0]
+//	var LAlarmFlag = [0,0,0]
 	for(let i=0;i<V.length;i++){
-	if(L[i]<220){
+	//console.log("Loop Running")
+	if(V[i]<250){
+//		console.log("LFlag["+i+"]: "+LFlag[i]+" | "+"LAlarmFlag["+i+"]: "+LAlarmFlag[i])
 		if(LFlag[i] == 0 && LAlarmFlag[i] == 0){
-		LFlag = 1;
-		LAlarmFlag = 1
-		if(L[i]<=0){
-	 		LT[i]= "Line "+i+1+" Fault"
+		LFlag[i] = 1;
+		LAlarmFlag[i] = 1
+		if(V[i]<=0){
+	 		LT[i]= "Line "+(i+1)+" Fault"
 		}
 		else{
-			LT[i]= "Line "+i+1+" Low Volt, V:"+L[i]
+			LT[i]= "Line "+(i+1)+" Low Volt, V:"+V[i]
 		}
+	//	console.log(LT[i])
+//		console.log("LFlag["+i+"]: "+LFlag[i]+" | "+"LAlarmFlag["+i+"]: "+LAlarmFlag[i])
+//		console.log("==============")
 	}
 	}
 	else{
@@ -139,7 +143,6 @@ app.get('/update1_data/', (req, res) => {
 	LT[i] = "ok"
 	}
 	}
-        }
 
                 var text=""
                 if(LT[0]!="ok"){
@@ -166,7 +169,7 @@ app.get('/update1_data/', (req, res) => {
 	//console.log(L2T)
 	//console.log(L3T)
 	
-        var volt = L1+L2+L3
+        var volt = V[0]+V[1]+V[2]
         console.log(volt)
         
 	if (volt <= 0) {
@@ -343,6 +346,40 @@ function offAlarm() {
     }
     request(
  	{
+            method: 'POST',
+            url: 'https://fcm.googleapis.com/fcm/send',
+            headers: headersOpt,
+            json: data,
+        }, function (error, response, body) {
+            //Print the Response
+            console.log(body);
+        });
+}
+
+function lineFault(text) {
+    console.log("Line Fault");
+    onFlag = 0;
+    con.connect(function (err) {
+        if (err) throw err
+        con.query("INSERT INTO alarm_log (kw) VALUES ('Line Fault') ;", function (err, result) {
+            if (err) throw err
+            // res.status(200).send("success");
+        })
+    })
+    var headersOpt = {
+        "content-type": "application/json",
+        "Authorization": "key=AAAA2Y0T-qE:APA91bGuJwoJ5Kgov1f6h8ru2963O9TkJNSNWjhrqGpijI3RKsBPdGhHQYeyPnhE8lK_4MVcxXODt036U4eK-Tc-n6V7o_2HXJDpNnW3zDXvS-vJwTBmaLrGUxCDQsGsDLJh_ukadFuX"
+    };
+    var data = {
+        "to": "/topics/factoryupdate",
+        "data": {
+            "title": "Power OFF",
+            "content": "Power OFF",
+            "type": "poweron"
+        }
+    }
+    request(
+        {
             method: 'POST',
             url: 'https://fcm.googleapis.com/fcm/send',
             headers: headersOpt,
