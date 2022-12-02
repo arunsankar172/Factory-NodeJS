@@ -72,6 +72,7 @@ app.get('/get_data1', (req, res) => {
     // response.data = JSON.stringify(dataJSON)
     //}
    // else{
+//
     con.connect(function (err) {
         if (err) throw err;
         con.query("SELECT * FROM energy ORDER BY id DESC LIMIT 1;", function (err, result, fields) {
@@ -104,8 +105,8 @@ app.get('/update1_data/', (req, res) => {
     var data = url.parse(req.url, true).query;
     kw = data.kw
 //console.log(data)
-	
-	 if (parseFloat(data.kw) < 1000) {
+
+	 if (parseFloat(data.kw) < 1000 &&  parseFloat(data.vp1) < 1000 &&  parseFloat(data.vp2) < 1000 &&  parseFloat(data.vp3) < 1000) {
 
         if (data.kw > 100) {
             sendNotification();
@@ -126,19 +127,19 @@ app.get('/update1_data/', (req, res) => {
 //	var LAlarmFlag = [0,0,0]
 	for(let i=0;i<V.length;i++){
 	//console.log("Loop Running")
-	if(V[i]<190 && volt>0){
+	if(V[i]<200 && V[i]>0){
 //		console.log("LFlag["+i+"]: "+LFlag[i]+" | "+"LAlarmFlag["+i+"]: "+LAlarmFlag[i])
 		if(LFlag[i] == 0 && LAlarmFlag[i] == 0){
 		LFlag[i] = 1;
 		LAlarmFlag[i] = 1
-		if(V[i]<=0){
-			LT.type="Line Fault"
-	 		LT.text[i]= "Line "+(i+1)+" Fault"
-		}
-		else{
-			LT.type="Low Voltage"
-			LT.text[i]= "Line "+(i+1)+" Low Volt, V:"+V[i]
-		}
+//		if(V[i]<=0){
+//			LT.type="Line Fault"
+//	 		LT.text[i]= "Line "+(i+1)+" Fault"
+//		}
+//		else{
+		LT.type="Low Voltage"
+		LT.text[i]= "Line "+(i+1)+" Low Volt, V:"+V[i]
+//		}
 	//	console.log(LT[i])
 //		console.log("LFlag["+i+"]: "+LFlag[i]+" | "+"LAlarmFlag["+i+"]: "+LAlarmFlag[i])
 //		console.log("==============")
@@ -164,14 +165,7 @@ app.get('/update1_data/', (req, res) => {
 		//L3Flag == 0
                 }
 	//console.log(LT)
-	console.log("L1: "+LFlag[0]+" L2: "+LFlag[1]+" L3: "+LFlag[2])
-	if(LAlarmFlag[0] == 1 || LAlarmFlag[1] == 1 || LAlarmFlag[2] == 1){
-		console.log(text)
-		lineFault(text,LT.type)
-		LAlarmFlag[0] = 0
-		LAlarmFlag[1] = 0
-		LAlarmFlag[2] = 0
-	}
+//	console.log("L1: "+LFlag[0]+" L2: "+LFlag[1]+" L3: "+LFlag[2])
 
 	//console.log(L1T)
 	//console.log(L2T)
@@ -195,6 +189,14 @@ app.get('/update1_data/', (req, res) => {
 		offFlag = 0;
             }
         }
+
+	if(LAlarmFlag[0] == 1 || LAlarmFlag[1] == 1 || LAlarmFlag[2] == 1){
+                console.log(text)
+                lineFault(text,LT.type)
+                LAlarmFlag[0] = 0
+                LAlarmFlag[1] = 0
+                LAlarmFlag[2] = 0
+        }
 //	var newTime=new Date()
 //	var timeDiff=(newTime.getTime()-oldTime.getTime())/1000
 //	if(parseFloat(timeDiff)>60){	
@@ -205,7 +207,8 @@ app.get('/update1_data/', (req, res) => {
         con.connect(function (err) {
             if (err) throw err
             // con.query("UPDATE energy SET kw=?, vp1=?, vp2=? ,vp3=? ,il1=? ,il2=? ,il3=?  WHERE id LIKE 1;", [data.kw, data.vp1, data.vp2, data.vp3, data.il1, data.il2, data.il3, data.alarm, data.relay], function (err, result) {
-            con.query("INSERT INTO energy (kw, vp1, vp2 ,vp3 ,il1 ,il2 ,il3, pf) VALUES (?,?,?,?,'','','',?) ;", [data.kw, data.vp1, data.vp2, data.vp3, data.pf], function (err, result) {
+            con.query("INSERT INTO energy (kw, vp1, vp2 ,vp3, vry, vyb, vbr ,il1 ,il2 ,il3, pf) VALUES (?,?,?,?,?,?,?,?,?,?,?) ;", [data.kw, data.vp1, data.vp2, data.vp3, data.vry,
+ data.vyb, data.vbr, data.il1, data.il2, data.il3, data.pf], function (err, result) {
                 if (err) throw err
                 res.status(200).send("success");
             })
@@ -369,7 +372,7 @@ function lineFault(text,type) {
     onFlag = 0;
     con.connect(function (err) {
         if (err) throw err
-        con.query("INSERT INTO alarm_log (kw) VALUES ("+type+") ;", function (err, result) {
+        con.query("INSERT INTO alarm_log (kw) VALUES ('"+type+"') ;", function (err, result) {
             if (err) throw err
             // res.status(200).send("success");
         })
