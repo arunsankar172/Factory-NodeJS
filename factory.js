@@ -4,6 +4,7 @@ var mysql = require('mysql2');
 var bodyParser = require('body-parser');
 var request = require('request');
 const path = require('path');
+var fs = require('fs');
 var count = 0;
 var onFlag = 0;
 var offFlag = 0;
@@ -235,10 +236,31 @@ app.get('/update_alarm/:state', (req, res) => {
     });
 })
 
-app.get('/iframe', (req, res) => {
+//app.get('/iframe', (req, res) => {
     // res.send('<iframe src="https://grafana.aruncloud.ga/d-solo/k3-uGnqnk/power-monitor?orgId=1&refresh=10s&theme=dark&panelId=19" width="100%" height="100%" frameborder="0" border-radius: "20px";  allowfullscreen"></iframe>')
-    res.sendFile(path.join(__dirname + '/iframe.html'))
+   // res.sendFile(path.join(__dirname + '/iframe.html'))
+//})
+
+app.get('/iframe', (req, res) => {
+        var response;
+	res.set('Content-Type', 'text/html');
+        fs.readFile('linechart.html', 'utf-8', function (err, data) {
+            con.connect(function (err) {
+                if (err) throw err;
+                con.query("SELECT time AS x, kw as y FROM energy WHERE  id%15=0 ORDER BY id DESC LIMIT 100 ;", function (err, result, fields) {
+                    if (err) throw err;
+                    if (result.length > 0) {
+                        response=result;
+                        console.log(response);
+                        var result = data.replace('{{chartData}}', JSON.stringify(response));
+        		res.send(result);
+                  }
+                });
+            });
+            
+        });
 })
+
 app.get('/iframe1', (req, res) => {
     // res.send('<iframe src="https://grafana.aruncloud.ga/d-solo/k3-uGnqnk/power-monitor?orgId=1&refresh=10s&theme=dark&panelId=19" width="100%" height="100%" frameborder="0" border-radius: "20px";  allowfullscreen"></iframe>')
     res.sendFile(path.join(__dirname + '/iframe1.html'))

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+    
+    .full-height {
+      height: 100%;
+      background: #181b1f;
+      border-radius: 10px;
+    }
+    </style>
+  </head>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+<body>
+  <div class="full-height">
+    <canvas style="height: 100%;width: 100%;" id="myChart"></canvas>
+  </div>
+
+<scipt>
+  const response={}
+const data = {
+  datasets: [{
+    fill: false,
+    borderColor: '#619e5a',
+    pointRadius:0,
+    pointBackgroundColor:'#619e5a',
+    tension: 0.3,
+
+    data:{{chartData}}
+  }]
+};
+
+new Chart("myChart", {
+  type: 'line',
+  data: data,
+  options: {
+
+    responsive: false,
+    plugins: {
+      legend:{
+    display: false
+      }
+    },
+    scales: {
+    x: {
+      grid: {
+        display: false,
+      },
+      type: 'time',
+      time: {
+          unit: 'hour'
+      },
+      ticks:{
+	color:'#fff',
+          source:'data'
+      },
+
+    },
+
+    y: {
+      ticks: {
+        display: true,
+	color:'#fff'
+      },
+      grid: {
+        display: false,
+      },
+    },
+  },
+  },
+});
+</script>
+
+</body>
+</html>
+
+
