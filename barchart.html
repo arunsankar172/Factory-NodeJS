@@ -47,8 +47,8 @@ const data = {
       'rgb(153, 102, 255)',
       'rgb(201, 203, 207)'
     ],
-    borderWidth: 1
-
+    borderWidth: 1,
+    borderRadius: 5,
     data:{{chartData}}
   }]
 };
@@ -81,6 +81,7 @@ new Chart("myChart", {
     },
 
     y: {
+	beginAtZero: true,
       ticks: {
         display: true,
 	color:'#fff'
