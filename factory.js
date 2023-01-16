@@ -267,7 +267,7 @@ res.set('Content-Type', 'text/html');
     fs.readFile('barchart.html', 'utf-8', function (err, data) {
         con.connect(function (err) {
             if (err) throw err;
-            con.query("SELECT SUM(kw*0.000972222) AS DailyKW, Date(time) FROM energy GROUP BY DATE(time) ORDER BY `Date(time)` DESC LIMIT 7;", function (err, result, fields) {
+            con.query("SELECT SUM(kw*0.000972222) AS x, Date(time) AS y FROM energy GROUP BY DATE(time) ORDER BY `Date(time)` DESC LIMIT 7;", function (err, result, fields) {
                 if (err) throw err;
                 if (result.length > 0) {
                     response=result;
