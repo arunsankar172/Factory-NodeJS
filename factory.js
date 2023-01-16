@@ -262,9 +262,29 @@ app.get('/iframe', (req, res) => {
 })
 
 app.get('/iframe1', (req, res) => {
-    // res.send('<iframe src="https://grafana.aruncloud.ga/d-solo/k3-uGnqnk/power-monitor?orgId=1&refresh=10s&theme=dark&panelId=19" width="100%" height="100%" frameborder="0" border-radius: "20px";  allowfullscreen"></iframe>')
-    res.sendFile(path.join(__dirname + '/iframe1.html'))
+    var response;
+res.set('Content-Type', 'text/html');
+    fs.readFile('barchart.html', 'utf-8', function (err, data) {
+        con.connect(function (err) {
+            if (err) throw err;
+            con.query("SELECT SUM(kw*0.000972222) AS DailyKW, Date(time) FROM energy GROUP BY DATE(time) ORDER BY `Date(time)` DESC LIMIT 7;", function (err, result, fields) {
+                if (err) throw err;
+                if (result.length > 0) {
+                    response=result;
+                    console.log(response);
+                    var result = data.replace('{{chartData}}', JSON.stringify(response));
+            res.send(result);
+              }
+            });
+        });
+        
+    });
 })
+
+// app.get('/iframe1', (req, res) => {
+//     // res.send('<iframe src="https://grafana.aruncloud.ga/d-solo/k3-uGnqnk/power-monitor?orgId=1&refresh=10s&theme=dark&panelId=19" width="100%" height="100%" frameborder="0" border-radius: "20px";  allowfullscreen"></iframe>')
+//     res.sendFile(path.join(__dirname + '/iframe1.html'))
+// })
 
 app.listen(5000, () => {
     console.log(`Example app listening at http://localhost:5000`)
@@ -453,3 +473,5 @@ function lineFault(text,type) {
 //SELECT SUM(kw*0.000972222) AS "usage" FROM energy WHERE MONTH(time) = MONTH(CURRENT_DATE())) as "thismonth"
 
 //(SELECT SUM(kw*0.000972222) AS "usage" FROM energy WHERE YEARWEEK(time) = YEARWEEK(CURRENT_DATE()) ) as "thisweek"
+
+// SELECT SUM(kw*0.000972222) AS DailyKW, Date(time) FROM energy GROUP BY DATE(time) ORDER BY `Date(time)` DESC LIMIT 7;
