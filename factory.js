@@ -87,6 +87,7 @@ app.get('/get_data1', (req, res) => {
         });
     });
     //}
+//	con.end()
 
     con.connect(function (err) {
         if (err) throw err;
@@ -99,7 +100,8 @@ app.get('/get_data1', (req, res) => {
             }
         });
     });
-    console.log(response.data)
+//	con.end()
+//    console.log(response.data)
 })
 
 app.get('/update1_data/', (req, res) => {
@@ -224,6 +226,46 @@ app.get('/update1_data/', (req, res) => {
        // })
     }
 
+})
+
+app.get('/home_data', (req, res) => {
+    var data = url.parse(req.url, true).query;
+    con.connect(function(err) {
+    if (err) throw err;
+
+    if(data.id=='weather'){
+        var sql = "INSERT INTO weather (temp, level) VALUES ("+data.temp+","+data.level+")";
+        con.query(sql, function (err, result) {
+        if (err) {
+            console.log('this.sql', this.sql); //command/query
+            console.log("ERROR");
+            console.log(err);
+            return;
+        }
+            res.send("success")
+        });
+    }
+    else{
+        var sql = "INSERT INTO power (volt, amps, power) VALUES ("+data.volt+","+data.amps+","+data.power+")";
+        con.query(sql, function (err, result) {
+          if (err) {
+              console.log('this.sql', this.sql); //command/query
+              console.log("ERROR");
+              console.log(err);
+              return;
+          }
+        });
+        var wh=data.power*0.00194;
+        wh=wh/1000.0;
+        //var sql1 = "UPDATE bill SET watthout+="+wh+",unit="+~~wh+",amt="+~~wh*3;
+          var sql1 = "UPDATE bill SET watthour=watthour+"+wh+",unit=FLOOR(watthour+"+wh+"),amt=FLOOR((watthour+"+wh+")*3) WHERE id=1"
+              con.query(sql1, function (err, result) {
+         if (err) throw err;
+          res.send("Success 1");
+        });
+        
+    }
+  });
 })
 
 app.get('/update_alarm/:state', (req, res) => {
