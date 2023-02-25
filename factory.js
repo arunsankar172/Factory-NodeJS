@@ -107,7 +107,7 @@ app.get('/get_data1', (req, res) => {
 app.get('/update1_data/', (req, res) => {
     var data = url.parse(req.url, true).query;
     kw = data.kw
-//console.log(data)
+//	console.log(data)
 
 	 if (parseFloat(data.kw) < 1000 &&  parseFloat(data.vp1) < 1000 &&  parseFloat(data.vp2) < 1000 &&  parseFloat(data.vp3) < 1000) {
 
@@ -231,7 +231,8 @@ app.get('/update1_data/', (req, res) => {
 app.get('/home_data', (req, res) => {
     var data = url.parse(req.url, true).query;
     con.connect(function(err) {
-    if (err) throw err;
+console.log(data)    
+if (err) throw err;
 
     if(data.id=='weather'){
         var sql = "INSERT INTO weather (temp, level) VALUES ("+data.temp+","+data.level+")";
@@ -245,7 +246,8 @@ app.get('/home_data', (req, res) => {
             res.send("success")
         });
     }
-    else{
+    
+if(data.id=='power'){
         var sql = "INSERT INTO power (volt, amps, power) VALUES ("+data.volt+","+data.amps+","+data.power+")";
         con.query(sql, function (err, result) {
           if (err) {
@@ -265,6 +267,25 @@ app.get('/home_data', (req, res) => {
         });
         
     }
+  });
+})
+
+app.get('/field_data', (req, res) => {
+    var data = url.parse(req.url, true).query;
+    con.connect(function(err) {
+	console.log(data)    
+	if (err) throw err;
+
+        var sql = "INSERT INTO field (temp, moisture) VALUES ("+data.temp+","+data.moisture+")";
+        con.query(sql, function (err, result) {
+        if (err) {
+            console.log('this.sql', this.sql); //command/query
+            console.log("ERROR");
+            console.log(err);
+            return;
+        }
+            res.send("success")
+        });
   });
 })
 
