@@ -130,7 +130,7 @@ app.get('/update1_data/', (req, res) => {
 //	var LAlarmFlag = [0,0,0]
 	for(let i=0;i<V.length;i++){
 	//console.log("Loop Running")
-	if(V[i]<200 && V[i]>0){
+	if(V[i]<190 && V[i]>0){
 //		console.log("LFlag["+i+"]: "+LFlag[i]+" | "+"LAlarmFlag["+i+"]: "+LAlarmFlag[i])
 		if(LFlag[i] == 0 && LAlarmFlag[i] == 0){
 		LFlag[i] = 1;
